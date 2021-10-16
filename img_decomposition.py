@@ -60,3 +60,12 @@ def copy(self):
         r = np.zeros((self.input.rows, self.input.cols), dtype=r_nz.dtype)
         r[self.input.mask_nz] = r_nz
         return r
+    
+    def get_labels_visualization(self):
+        #colors = image_util.n_distinct_colors(self.nlabels + 1)
+        colors = self.get_reflectances_rgb()
+        colors = np.vstack((colors, [0.0, 0.0, 0.0]))
+        labels = self.get_labels()
+        labels[labels == -1] = self.nlabels
+        v = colors[labels, :]
+        return v
