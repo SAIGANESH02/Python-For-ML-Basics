@@ -191,6 +191,31 @@ def determine_emotion_class(self,feature):
 			emotion_class = 4
 
 		return emotion_class
+
+	def process_all_data(self,all_channel_data):
+		"""
+		Process all data from EEG data to predict emotion class.
+		Input: Channel data with dimension N x M. N denotes number of channel and M denotes number of EEG data from each channel.
+		Output: Class of emotion between 1 to 5 according to Russel's Circumplex Model. And send it to web ap
+		"""
+		#Get feature from EEG data
+		feature = self.get_feature(all_channel_data)
+
+		#Predict emotion class
+		emotion_class = self.determine_emotion_class(feature)
+
+		#send emotion_class to web app
+		self.send_result_to_application(emotion_class)
+
+	def send_result_to_application(self,emotion_class):
+		"""
+		Send emotion predict to web app.
+		Input: Class of emotion between 1 to 5 according to Russel's Circumplex Model.
+		Output: Send emotion prediction to web app.
+		"""
+		socket =  SocketIO('localhost', socket_port, LoggingNamespace)
+		socket.emit('realtime emotion',emotion_class)
+
 if _name_ == "_main_":
 	rte = RealtimeEmotion()
 	rte.main_process()
