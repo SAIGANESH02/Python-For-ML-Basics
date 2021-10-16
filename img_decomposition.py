@@ -69,3 +69,15 @@ def copy(self):
         labels[labels == -1] = self.nlabels
         v = colors[labels, :]
         return v
+    
+    def get_reflectances_rgb(self):
+        nlabels = self.intensities.shape[0]
+        rgb = np.zeros((nlabels, 3))
+        s = 3.0 * self.intensities
+        r = self.chromaticities[:, 0]
+        g = self.chromaticities[:, 1]
+        b = 1.0 - r - g
+        rgb[:, 0] = s * r
+        rgb[:, 1] = s * g
+        rgb[:, 2] = s * b
+        return rgb
