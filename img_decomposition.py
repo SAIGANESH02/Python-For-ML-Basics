@@ -45,3 +45,18 @@ def copy(self):
         r_nz = self.input.image_rgb_nz / np.clip(s_nz, 1e-4, 1e5)[:, np.newaxis]
         assert s_nz.ndim == 1 and r_nz.ndim == 2 and r_nz.shape[1] == 3
         return r_nz, s_nz
+     def get_r_s(self):
+        """ Return (reflectance, shading), in the full (rows, cols) shape """
+        r_nz, s_nz = self.get_r_s_nz()
+        r = np.zeros((self.input.rows, self.input.cols, 3), dtype=r_nz.dtype)
+        s = np.zeros((self.input.rows, self.input.cols), dtype=s_nz.dtype)
+        r[self.input.mask_nz] = r_nz
+        s[self.input.mask_nz] = s_nz
+        assert s.ndim == 2 and r.ndim == 3 and r.shape[2] == 3
+        return r, s
+
+    def get_r_gray(self):
+        r_nz = self.intensities[self.labels_nz]
+        r = np.zeros((self.input.rows, self.input.cols), dtype=r_nz.dtype)
+        r[self.input.mask_nz] = r_nz
+        return r
