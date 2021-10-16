@@ -102,7 +102,74 @@ class RealtimeEmotion(object):
 		return delta,theta,alpha,beta,gamma
 
 
+def get_feature(self,all_channel_data): 
+		"""
+		Get feature from each frequency.
+		Input: Channel data with dimension N x M. N denotes number of channel and M denotes number of EEG data from each channel.
+		Output: Feature (standard deviasion and mean) from all frequency bands and channels with dimesion 1 x M (number of feature).
+		"""
+		#Get frequency data
+		(delta,theta,alpha,beta,gamma) = self.get_frequency(all_channel_data)
 
+		#Compute feature std
+		delta_std = np.std(delta, axis=1)
+		theta_std = np.std(theta, axis=1)
+		alpha_std = np.std(alpha, axis=1)
+		beta_std = np.std(beta, axis=1)
+		gamma_std = np.std(gamma, axis=1)
+
+		#Compute feature means
+		delta_m = np.mean(delta, axis=1)
+		theta_m = np.mean(theta, axis=1)
+		alpha_m = np.mean(alpha, axis=1)
+		beta_m = np.mean(beta, axis=1)
+		gamma_m = np.mean(gamma, axis=1)
+
+		#Concate feature
+		feature = np.array([delta_std,delta_m,theta_std,theta_m,alpha_std,alpha_m,beta_std,beta_m,gamma_std,gamma_m])
+		feature = feature.T
+		feature = feature.ravel()
+
+		return feature
+
+	def predict_emotion(self,feature):
+		"""
+		Get arousal and valence class from feature.
+		Input: Feature (standard deviasion and mean) from all frequency bands and channels with dimesion 1 x M (number of feature).
+		Output: Class of emotion between 1 to 3 from each arousal and valence. 1 denotes low category, 2 denotes normal category, and 3 denotes high category.
+		"""
+		#Compute canberra with arousal training data
+		distance_ar = map(lambda x:ss.distance.canberra(x,feature),self.train_arousal)
+
+		#Compute canberra with valence training data
+		distance_va = map(lambda x:ss.distance.canberra(x,feature),self.train_valence)
+
+		#Compute 3 nearest index and distance value from arousal
+		idx_nearest_ar = np.array(np.argsort(distance_ar)[:3])
+		val_nearest_ar = np.array(np.sort(distance_ar)[:3])
+
+		#Compute 3 nearest index and distance value from arousal
+		idx_nearest_va = np.array(np.argsort(distance_va)[:3])
+		val_nearest_va = np.array(np.sort(distance_va)[:3])
+
+		#Compute comparation from first nearest and second nearest distance. If comparation less or equal than 0.7, then take class from the first nearest distance. Else take frequently class.
+		#Arousal
+		comp_ar = val_nearest_ar[0]/val_nearest_ar[1]
+		if comp_ar<=0.97:
+			result_ar = self.class_arousal[0,idx_nearest_ar[0]]
+		else:
+			result_ar = sst.mode(self.class_arousal[0,idx_nearest_ar])
+			result_ar = float(result_ar[0])
+
+		#Valence
+		comp_va = val_nearest_va[0]/val_nearest_va[1]
+		if comp_va<=0.97:
+			result_va = self.class_valence[0,idx_nearest_va[0]]
+		else:
+			result_va = sst.mode(self.class_valence[0,idx_nearest_va])
+			result_va = float(result_va[0])
+
+		return result_ar,result_va
 if _name_ == "_main_":
 	rte = RealtimeEmotion()
 	rte.main_process()
