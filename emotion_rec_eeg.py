@@ -88,9 +88,7 @@ class RealtimeEmotion(object):
 		#Get fft data
 		data_fft = self.do_fft(all_channel_data)
 
-		#Compute frequency
-		frequency = map(lambda x: abs(x/L),data_fft)
-		frequency = map(lambda x: x[: L/2+1]*2,frequency)
+
 
 		#List frequency
 		delta = map(lambda x: x[L*1/Fs-1: L*4/Fs],frequency)
@@ -125,12 +123,9 @@ def get_feature(self,all_channel_data):
 		beta_m = np.mean(beta, axis=1)
 		gamma_m = np.mean(gamma, axis=1)
 
-		#Concate feature
-		feature = np.array([delta_std,delta_m,theta_std,theta_m,alpha_std,alpha_m,beta_std,beta_m,gamma_std,gamma_m])
-		feature = feature.T
-		feature = feature.ravel()
 
-		return feature
+
+	
 
 	def predict_emotion(self,feature):
 		"""
